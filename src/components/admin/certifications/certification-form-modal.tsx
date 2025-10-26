@@ -9,8 +9,8 @@ import { Input } from '@/components/shared/ui/input'
 import { Textarea } from '@/components/shared/ui/textarea'
 import { toast } from '@/lib/utils/toast'
 import {
-  certificationSchema,
-  type CertificationFormData,
+  certificationFormSchema,
+  type CertificationFormInput,
 } from '@/lib/validations/certification'
 import {
   createCertification,
@@ -41,11 +41,8 @@ export function CertificationFormModal({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<{
-    name: string
-    description: string
-  }>({
-    resolver: zodResolver(certificationSchema),
+  } = useForm<CertificationFormInput>({
+    resolver: zodResolver(certificationFormSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -67,7 +64,7 @@ export function CertificationFormModal({
     }
   }, [certification, reset])
 
-  const onSubmit = async (data: { name: string; description: string }) => {
+  const onSubmit = async (data: CertificationFormInput) => {
     setIsSubmitting(true)
 
     try {
@@ -75,10 +72,10 @@ export function CertificationFormModal({
 
       if (isEditMode && certification) {
         // 更新
-        result = await updateCertification(certification.id, data as CertificationFormData)
+        result = await updateCertification(certification.id, data)
       } else {
         // 新規作成
-        result = await createCertification(data as CertificationFormData)
+        result = await createCertification(data)
       }
 
       if (result.success) {

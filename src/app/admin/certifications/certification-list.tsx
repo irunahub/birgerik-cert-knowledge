@@ -23,7 +23,7 @@ interface CertificationListProps {
 export function CertificationList({
   initialCertifications,
 }: CertificationListProps) {
-  const [certifications, setCertifications] = useState(initialCertifications)
+  const [certifications] = useState(initialCertifications)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null)

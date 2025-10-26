@@ -3,9 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import {
-  certificationSchema,
+  certificationFormSchema,
   updateCertificationSchema,
-  type CertificationFormData,
+  type CertificationFormInput,
 } from '@/lib/validations/certification'
 import { handleSupabaseError } from '@/lib/errors'
 
@@ -21,11 +21,11 @@ export type ActionResult<T = void> = {
  * 資格を作成
  */
 export async function createCertification(
-  formData: CertificationFormData
+  formData: CertificationFormInput
 ): Promise<ActionResult<{ id: string }>> {
   try {
     // バリデーション（safeParse使用）
-    const result = certificationSchema.safeParse(formData)
+    const result = certificationFormSchema.safeParse(formData)
     
     if (!result.success) {
       // Zodのエラーをフィールドエラー形式に変換
@@ -40,12 +40,17 @@ export async function createCertification(
     const validatedData = result.data
     const supabase = await createClient()
 
+    // descriptionが空文字の場合はnullに変換
+    const description = validatedData.description.trim() === '' 
+      ? null 
+      : validatedData.description
+
     // データベースに挿入
     const { data, error } = await supabase
       .from('certifications')
       .insert({
         name: validatedData.name,
-        description: validatedData.description,
+        description,
       })
       .select('id')
       .single()
@@ -79,13 +84,15 @@ export async function createCertification(
  */
 export async function updateCertification(
   id: string,
-  formData: CertificationFormData
+  formData: CertificationFormInput
 ): Promise<ActionResult> {
   try {
     // バリデーション（safeParse使用）
     const result = updateCertificationSchema.safeParse({
       id,
       ...formData,
+      // descriptionの空文字をnullに変換
+      description: formData.description.trim() === '' ? null : formData.description,
     })
     
     if (!result.success) {
