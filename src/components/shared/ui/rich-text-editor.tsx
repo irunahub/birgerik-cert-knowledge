@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import Placeholder from '@tiptap/extension-placeholder'
 import { common, createLowlight } from 'lowlight'
 import {
   Bold,
@@ -45,9 +46,14 @@ export function RichTextEditor({
       CodeBlockLowlight.configure({
         lowlight,
       }),
+      Placeholder.configure({
+        placeholder,
+        emptyEditorClass: 'is-editor-empty',
+      }),
     ],
     content,
     editable: !disabled,
+    immediatelyRender: false, // ✅ SSRエラーを防ぐために追加
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
     },
@@ -212,13 +218,6 @@ export function RichTextEditor({
 
         {/* エディタ本体 */}
         <EditorContent editor={editor} className="bg-white" />
-
-        {/* プレースホルダー（空の場合） */}
-        {editor.isEmpty && (
-          <div className="absolute top-[60px] left-3 text-gray-400 pointer-events-none">
-            {placeholder}
-          </div>
-        )}
       </div>
 
       {error && (
