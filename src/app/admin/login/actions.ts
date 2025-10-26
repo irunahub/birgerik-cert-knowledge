@@ -22,6 +22,7 @@ export type LoginFormState = {
 
 /**
  * ログイン処理
+ * 成功時は直接リダイレクトするため、stateは返らない
  */
 export async function login(
   prevState: LoginFormState,
@@ -50,34 +51,21 @@ export async function login(
     const supabase = await createClient()
 
     // Supabase Authでログイン
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    if (signInError) {
-      console.error('Login error:', signInError)
+    if (error) {
+      console.error('Login error:', error)
       return {
         success: false,
         error: 'メールアドレスまたはパスワードが正しくありません',
       }
     }
 
-    // ✅ ログイン後、getUser()で再検証（セキュア）
-    // signInWithPasswordの戻り値ではなく、サーバーに問い合わせて検証
-    const { data: { user }, error: getUserError } = await supabase.auth.getUser()
-
-    if (getUserError || !user) {
-      console.error('User verification error:', getUserError)
-      await supabase.auth.signOut()
-      return {
-        success: false,
-        error: 'ユーザー情報の検証に失敗しました',
-      }
-    }
-
     // ユーザーのroleを確認
-    const userRole = user.user_metadata?.role
+    const userRole = data.user?.user_metadata?.role
     if (userRole !== 'admin') {
       // 管理者でない場合はログアウト
       await supabase.auth.signOut()
@@ -89,26 +77,25 @@ export async function login(
 
     // キャッシュを再検証
     revalidatePath('/', 'layout')
-
-    // 成功
-    return {
-      success: true,
-    }
+    
+    // ✅ ログイン成功 - 直接リダイレクト
+    // redirect()はエラーをthrowして処理を中断し、リダイレクトを実行する
+    // この行以降は実行されない
+    redirect('/admin/certifications')
   } catch (error) {
+    // redirect()はREDIRECT_ERRORをthrowするが、それ以外のエラーをキャッチ
+    // redirect()のエラーは再throwしないと正しく動作しない
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      // redirect()によるエラーは再throw
+      throw error
+    }
+    
     console.error('Unexpected error during login:', error)
     return {
       success: false,
       error: 'ログイン処理中にエラーが発生しました',
     }
   }
-}
-
-/**
- * ログイン成功後のリダイレクト処理
- * （Server Componentから呼び出される）
- */
-export async function redirectToAdmin() {
-  redirect('/admin/certifications')
 }
 
 /**

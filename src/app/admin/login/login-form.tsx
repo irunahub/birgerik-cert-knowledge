@@ -2,7 +2,6 @@
 
 import { useFormStatus } from 'react-dom'
 import { useActionState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { login, type LoginFormState } from './actions'
 import { Button } from '@/components/shared/ui/button'
@@ -34,19 +33,15 @@ function SubmitButton() {
 }
 
 export function LoginForm() {
-  const router = useRouter()
   const [state, formAction] = useActionState(login, initialState)
 
+  // ❌ 削除：success時のredirectToAdmin呼び出し
+  // ✅ エラー時のみトースト表示
   useEffect(() => {
-    if (state.success) {
-      toast.success('ログインしました')
-      // クライアント側でリダイレクト
-      router.push('/admin/certifications')
-      router.refresh() // セッション情報を更新
-    } else if (state.error) {
+    if (state.error) {
       toast.error(state.error)
     }
-  }, [state, router])
+  }, [state.error])
 
   return (
     <form action={formAction} className="space-y-6">
