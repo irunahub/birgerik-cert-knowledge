@@ -10,7 +10,7 @@ export const choiceSchema = z.object({
     .min(1, '選択肢のテキストは必須です')
     .max(500, '選択肢は500文字以内で入力してください')
     .trim(),
-  is_correct: z.boolean().default(false),
+  is_correct: z.boolean(), // .default()を削除
   order_index: z.number().int().min(0),
 })
 
@@ -31,7 +31,7 @@ export const questionFormSchema = z.object({
     .string()
     .max(2000, '解説は2000文字以内で入力してください')
     .trim(),
-  is_multiple_choice: z.boolean().default(false),
+  is_multiple_choice: z.boolean(), // .default()を削除
   choices: z
     .array(choiceSchema)
     .min(2, '選択肢は最低2つ必要です')
@@ -71,7 +71,7 @@ export const questionSchema = z.object({
       const trimmed = val.trim()
       return trimmed === '' ? null : trimmed
     }),
-  is_multiple_choice: z.boolean().default(false),
+  is_multiple_choice: z.boolean(), // .default()を削除
   order_index: z.number().int().min(0).nullable().optional(),
   choices: z
     .array(choiceSchema)
