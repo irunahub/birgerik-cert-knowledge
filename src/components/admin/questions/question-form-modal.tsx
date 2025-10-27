@@ -229,7 +229,7 @@ export function QuestionFormModal({
   useEffect(() => {
     if (isOpen) {
       reset({
-        question_set_id: question?.question_set_id || '',
+        question_set_id: question?.question_set_id || (questionSets.length > 0 ? questionSets[0].id : ''),
         question_text: question?.question_text || '',
         explanation: question?.explanation || '',
         is_multiple_choice: question?.is_multiple_choice ?? true,
@@ -248,7 +248,7 @@ export function QuestionFormModal({
       // エディタをリセットするためにキーを更新
       setEditorKey((prev) => prev + 1)
     }
-  }, [isOpen, question, reset])
+  }, [isOpen, question, questionSets, reset])
 
   useEffect(() => {
     if (isMultipleChoice === false) {
