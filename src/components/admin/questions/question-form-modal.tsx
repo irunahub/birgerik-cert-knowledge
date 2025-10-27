@@ -81,6 +81,7 @@ function SortableChoiceItem({
   isSubmitting,
   onRemove,
   canRemove,
+  onCorrectChange,
 }: {
   id: string
   index: number
@@ -90,6 +91,7 @@ function SortableChoiceItem({
   isSubmitting: boolean
   onRemove: () => void
   canRemove: boolean
+  onCorrectChange: (index: number) => void
 }) {
   const {
     attributes,
@@ -127,7 +129,14 @@ function SortableChoiceItem({
       <div className="flex items-center pt-2">
         <input
           type={isMultipleChoice ? 'checkbox' : 'radio'}
-          {...register(`choices.${index}.is_correct`)}
+          {...register(`choices.${index}.is_correct`, {
+            onChange: () => {
+              // ← 追加: 単一選択時に他の選択を解除
+              if (!isMultipleChoice) {
+                onCorrectChange(index)
+              }
+            },
+          })}
           disabled={isSubmitting}
           className="w-5 h-5 text-green-600 focus:ring-green-500"
           title="正解として設定"
@@ -314,6 +323,17 @@ export function QuestionFormModal({
     }
   }
 
+  const handleCorrectChange = (selectedIndex: number) => {
+    if (!isMultipleChoice) {
+      // 単一選択の場合、選択されたもの以外をfalseに設定
+      fields.forEach((_, index) => {
+        if (index !== selectedIndex) {
+          setValue(`choices.${index}.is_correct`, false)
+        }
+      })
+    }
+  }
+
   // ドラッグ終了時の処理
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -485,6 +505,7 @@ export function QuestionFormModal({
                         isSubmitting={isSubmitting}
                         onRemove={() => handleRemoveChoice(index)}
                         canRemove={fields.length > 2}
+                        onCorrectChange={handleCorrectChange}
                       />
                     ))}
                   </div>
