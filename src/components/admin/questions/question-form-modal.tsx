@@ -186,6 +186,8 @@ export function QuestionFormModal({
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const isEditMode = !!question
 
+  const [editorKey, setEditorKey] = useState(0)
+
   const {
     register,
     handleSubmit,
@@ -225,33 +227,28 @@ export function QuestionFormModal({
   )
 
   useEffect(() => {
-    if (!isOpen) return
-
-    if (question && question.choices) {
+    if (isOpen) {
       reset({
-        question_set_id: question.question_set_id,
-        question_text: question.question_text || '',
-        explanation: question.explanation || '',
-        is_multiple_choice: question.is_multiple_choice || false,
-        choices: question.choices.map((choice, index) => ({
-          choice_text: choice.choice_text || '',
-          is_correct: choice.is_correct || false,
-          order_index: index,
-        })),
+        question_set_id: question?.question_set_id || '',
+        question_text: question?.question_text || '',
+        explanation: question?.explanation || '',
+        is_multiple_choice: question?.is_multiple_choice ?? true,
+        choices:
+          question?.choices
+            ?.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+            .map((choice) => ({
+              choice_text: choice.choice_text,
+              is_correct: choice.is_correct || false,
+              order_index: choice.order_index || 0,
+            })) || [
+            { choice_text: '', is_correct: false, order_index: 0 },
+            { choice_text: '', is_correct: false, order_index: 1 },
+          ],
       })
-    } else {
-      reset({
-        question_set_id: questionSets.length > 0 ? questionSets[0].id : '',
-        question_text: '',
-        explanation: '',
-        is_multiple_choice: false,
-        choices: [
-          { choice_text: '', is_correct: false, order_index: 0 },
-          { choice_text: '', is_correct: false, order_index: 1 },
-        ],
-      })
+      // エディタをリセットするためにキーを更新
+      setEditorKey((prev) => prev + 1)
     }
-  }, [isOpen, question, questionSets, reset, isEditMode])
+  }, [isOpen, question, reset])
 
   useEffect(() => {
     if (isMultipleChoice === false) {
@@ -424,7 +421,7 @@ export function QuestionFormModal({
               control={control}
               render={({ field }) => (
                 <RichTextEditor
-                  key={question?.id || 'new'}
+                  key={`${editorKey}-question`}
                   label="問題文"
                   content={field.value}
                   onChange={field.onChange}
@@ -554,7 +551,7 @@ export function QuestionFormModal({
               control={control}
               render={({ field }) => (
                 <RichTextEditor
-                  key={question?.id ? `${question.id}-explanation` : 'new-explanation'}
+                  key={`${editorKey}-explanation`}
                   label="解説（任意）"
                   content={field.value}
                   onChange={field.onChange}
