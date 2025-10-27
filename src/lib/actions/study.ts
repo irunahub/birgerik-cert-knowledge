@@ -211,14 +211,23 @@ export async function getQuestionsWithChoices(
 
     if (error) throw error
 
-    // 選択肢を order_index でソート
+    // ✅ データを適切な型に変換（nullをデフォルト値に変換）
     const questions: QuestionWithChoices[] =
       data?.map((question) => ({
-        ...question,
+        id: question.id,
+        question_text: question.question_text,
+        explanation: question.explanation,
+        is_multiple_choice: question.is_multiple_choice ?? false, // nullをfalseに変換
+        order_index: question.order_index,
         choices:
-          question.choices?.sort(
-            (a, b) => (a.order_index || 0) - (b.order_index || 0)
-          ) || [],
+          question.choices
+            ?.map((choice) => ({
+              id: choice.id,
+              choice_text: choice.choice_text,
+              is_correct: choice.is_correct ?? false, // nullをfalseに変換
+              order_index: choice.order_index,
+            }))
+            .sort((a, b) => (a.order_index || 0) - (b.order_index || 0)) || [],
       })) || []
 
     return { data: questions, error: null }
