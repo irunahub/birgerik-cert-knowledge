@@ -18,11 +18,12 @@ export type DatabaseResult<T = void> = {
 
 /**
  * すべての問題を取得（問題集情報、選択肢を含む）
+ * @param questionSetId - オプション：問題集IDでフィルタリング
  */
-export async function getQuestions() {
+export async function getQuestions(questionSetId?: string | null) {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('questions')
     .select(`
       *,
@@ -41,7 +42,13 @@ export async function getQuestions() {
         order_index
       )
     `)
-    .order('created_at', { ascending: false })
+
+  // 問題集IDでフィルタリング
+  if (questionSetId) {
+    query = query.eq('question_set_id', questionSetId)
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false })
 
   if (error) {
     const appError = handleSupabaseError(error)
