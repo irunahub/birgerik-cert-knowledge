@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { successResponse, errorResponse } from '@/lib/api/response'
 import {
@@ -23,7 +24,7 @@ const getCachedCertifications = unstable_cache(
  * GET /api/v1/certifications
  * すべての資格を取得（問題集数を含む）
  */
-export const GET = withAuth(async (request: NextRequest) => {
+export const GET = withAuth(async () => {
   try {
     const certifications = await getCachedCertifications()
     return successResponse<CertificationWithCount[]>(certifications)

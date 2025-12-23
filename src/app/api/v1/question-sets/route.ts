@@ -23,7 +23,7 @@ const getCachedQuestionSets = unstable_cache(
  * GET /api/v1/question-sets
  * すべての問題集を取得
  */
-export const GET = withAuth(async (request: NextRequest) => {
+export const GET = withAuth(async () => {
   try {
     const questionSets = await getCachedQuestionSets()
     return successResponse(questionSets)

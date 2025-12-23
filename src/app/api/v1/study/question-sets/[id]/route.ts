@@ -9,7 +9,7 @@ import { unstable_cache } from 'next/cache'
  * 学習用：問題集の詳細を取得（問題数を含む）
  */
 export const GET = withAuth(async (
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   try {

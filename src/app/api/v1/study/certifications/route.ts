@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { successResponse, errorResponse } from '@/lib/api/response'
 import { getCertificationsWithQuestionSets } from '@/lib/database/study'
@@ -20,7 +19,7 @@ const getCachedCertificationsWithQuestionSets = unstable_cache(
  * GET /api/v1/study/certifications
  * 学習用：すべての資格と問題集を取得
  */
-export const GET = withAuth(async (request: NextRequest) => {
+export const GET = withAuth(async () => {
   try {
     const result = await getCachedCertificationsWithQuestionSets()
 

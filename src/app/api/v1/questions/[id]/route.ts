@@ -13,7 +13,7 @@ import { unstable_cache } from 'next/cache'
  * 特定の問題を取得
  */
 export const GET = withAuth(async (
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
@@ -73,7 +73,7 @@ export const PUT = withAuth(async (
  * 問題を削除
  */
 export const DELETE = withAuth(async (
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   try {

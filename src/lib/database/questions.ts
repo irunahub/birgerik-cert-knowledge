@@ -4,7 +4,6 @@ import { handleSupabaseError } from '@/lib/errors'
 import type { Database } from '@/lib/types/database.types'
 
 // 型定義
-type Question = Database['public']['Tables']['questions']['Row']
 type QuestionInsert = Database['public']['Tables']['questions']['Insert']
 type QuestionUpdate = Database['public']['Tables']['questions']['Update']
 type ChoiceInsert = Database['public']['Tables']['choices']['Insert']
