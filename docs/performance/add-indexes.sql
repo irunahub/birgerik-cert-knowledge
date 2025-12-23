@@ -81,13 +81,13 @@ ON certifications(created_at DESC);
 
 -- 作成されたインデックスを確認
 SELECT
-    tablename,
-    indexname,
+    relname AS tablename,
+    indexrelname AS indexname,
     pg_size_pretty(pg_relation_size(indexrelid)) AS index_size
 FROM pg_stat_user_indexes
 WHERE schemaname = 'public'
-    AND tablename IN ('certifications', 'question_sets', 'questions', 'choices')
-ORDER BY tablename, indexname;
+    AND relname IN ('certifications', 'question_sets', 'questions', 'choices')
+ORDER BY relname, indexrelname;
 
 -- テーブルサイズとインデックスサイズの確認
 SELECT
