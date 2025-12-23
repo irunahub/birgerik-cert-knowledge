@@ -37,6 +37,7 @@ export interface QuestionWithChoices {
 /**
  * すべての資格と問題集を取得
  * 各問題集には問題数も含まれる
+ * 最適化: N+1クエリを回避
  */
 export async function getCertificationsWithQuestionSets(): Promise<{
   data: CertificationWithQuestionSets[] | null
@@ -45,59 +46,68 @@ export async function getCertificationsWithQuestionSets(): Promise<{
   try {
     const supabase = await createClient()
 
-    // 資格を取得
-    const { data: certifications, error: certError } = await supabase
+    // ステップ1: 資格と問題集を1クエリで取得（結合クエリ）
+    const { data: certsWithSets, error: certError } = await supabase
       .from('certifications')
-      .select('id, name, description')
+      .select(`
+        id,
+        name,
+        description,
+        question_sets (
+          id,
+          name,
+          description
+        )
+      `)
       .order('name')
 
     if (certError) throw certError
-    if (!certifications || certifications.length === 0) {
+    if (!certsWithSets || certsWithSets.length === 0) {
       return { data: [], error: null }
     }
 
-    // 各資格の問題集を取得
-    const certificationsWithSets: CertificationWithQuestionSets[] = await Promise.all(
-      certifications.map(async (cert) => {
-        // 問題集を取得
-        const { data: questionSets, error: setsError } = await supabase
-          .from('question_sets')
-          .select('id, name, description')
-          .eq('certification_id', cert.id)
-          .order('name')
-
-        if (setsError) throw setsError
-
-        // 各問題集の問題数をカウント
-        const questionSetsWithCount = await Promise.all(
-          (questionSets || []).map(async (set) => {
-            const { count, error: countError } = await supabase
-              .from('questions')
-              .select('*', { count: 'exact', head: true })
-              .eq('question_set_id', set.id)
-
-            if (countError) throw countError
-
-            return {
-              ...set,
-              question_count: count || 0,
-            }
-          })
-        )
-
-        return {
-          ...cert,
-          question_sets: questionSetsWithCount,
-        }
-      })
+    // ステップ2: すべての問題集IDを収集
+    const allQuestionSetIds = certsWithSets.flatMap(
+      (cert: any) => cert.question_sets?.map((qs: any) => qs.id) || []
     )
 
-    // 問題集が0の資格は除外
-    const filteredCertifications = certificationsWithSets.filter(
-      (cert) => cert.question_sets.length > 0
-    )
+    if (allQuestionSetIds.length === 0) {
+      return { data: [], error: null }
+    }
 
-    return { data: filteredCertifications, error: null }
+    // ステップ3: すべての問題集の問題数を1クエリで取得
+    const { data: questionCounts, error: countError } = await supabase
+      .from('questions')
+      .select('question_set_id')
+      .in('question_set_id', allQuestionSetIds)
+
+    if (countError) throw countError
+
+    // 問題集IDごとの問題数をマップに格納
+    const countMap = new Map<string, number>()
+    questionCounts?.forEach((q: any) => {
+      const count = countMap.get(q.question_set_id) || 0
+      countMap.set(q.question_set_id, count + 1)
+    })
+
+    // ステップ4: データを結合
+    const certificationsWithSets: CertificationWithQuestionSets[] = certsWithSets
+      .map((cert: any) => ({
+        id: cert.id,
+        name: cert.name,
+        description: cert.description,
+        question_sets: (cert.question_sets || [])
+          .map((qs: any) => ({
+            id: qs.id,
+            name: qs.name,
+            description: qs.description,
+            question_count: countMap.get(qs.id) || 0,
+          }))
+          .sort((a: any, b: any) => a.name.localeCompare(b.name)),
+      }))
+      .filter((cert) => cert.question_sets.length > 0)
+
+    return { data: certificationsWithSets, error: null }
   } catch (error) {
     const appError = handleSupabaseError(error)
     console.error('Error fetching certifications:', appError)
