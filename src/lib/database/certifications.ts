@@ -8,6 +8,11 @@ type Certification = Database['public']['Tables']['certifications']['Row']
 type CertificationInsert = Database['public']['Tables']['certifications']['Insert']
 type CertificationUpdate = Database['public']['Tables']['certifications']['Update']
 
+// 問題集数を含む資格の型定義
+export interface CertificationWithCount extends Certification {
+  question_sets: { count: number }[] | null
+}
+
 // 結果の型定義
 export type DatabaseResult<T = void> = {
   success: boolean
@@ -18,7 +23,7 @@ export type DatabaseResult<T = void> = {
 /**
  * すべての資格を取得（問題集数を含む）
  */
-export async function getCertifications(): Promise<Certification[]> {
+export async function getCertifications(): Promise<CertificationWithCount[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -34,7 +39,7 @@ export async function getCertifications(): Promise<Certification[]> {
     throw appError
   }
 
-  return data
+  return data as CertificationWithCount[]
 }
 
 /**

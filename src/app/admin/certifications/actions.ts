@@ -11,7 +11,11 @@ import {
   createCertification as dbCreateCertification,
   updateCertification as dbUpdateCertification,
   deleteCertification as dbDeleteCertification,
+  type CertificationWithCount,
 } from '@/lib/database/certifications'
+
+// 型を再エクスポート
+export type { CertificationWithCount }
 
 // アクション結果の型定義
 export type ActionResult<T = void> = {
@@ -125,7 +129,7 @@ export async function deleteCertification(
 /**
  * すべての資格を取得
  */
-export async function getCertifications() {
+export async function getCertifications(): Promise<CertificationWithCount[]> {
   try {
     // lib/database の関数を呼び出し
     return await dbGetCertifications()
