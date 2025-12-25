@@ -1,5 +1,6 @@
 import { h } from 'preact'
 import { useStudyStoreAll, studyStore } from '@/store/study-store'
+import { formatText } from '@/utils/text'
 
 /**
  * 結果画面コンポーネント
@@ -122,9 +123,12 @@ export function ResultScreen() {
                 >
                   <div className="result-incorrect-number">問題 {questionNumber}</div>
                   <div className="result-incorrect-text">
-                    {question.question_text.length > 100
-                      ? question.question_text.substring(0, 100) + '...'
-                      : question.question_text}
+                    {(() => {
+                      const formattedText = formatText(question.question_text)
+                      return formattedText.length > 100
+                        ? formattedText.substring(0, 100) + '...'
+                        : formattedText
+                    })()}
                   </div>
                   <div className="result-incorrect-action">復習 →</div>
                 </div>

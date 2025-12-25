@@ -1,6 +1,7 @@
 import { h } from 'preact'
 import { useEffect, useState } from 'preact/hooks'
 import { useStudyStoreAll } from '@/store/study-store'
+import { formatText } from '@/utils/text'
 import type { QuestionWithChoices } from '@/types/api'
 
 /**
@@ -123,7 +124,7 @@ export function StudyScreen() {
           )}
         </div>
 
-        <div className="study-question-text">{currentQuestion.question_text}</div>
+        <div className="study-question-text">{formatText(currentQuestion.question_text)}</div>
 
         {/* 回答後に解説を表示 */}
         {showExplanation && currentQuestion.explanation && (
@@ -135,7 +136,7 @@ export function StudyScreen() {
                 <span className="study-result-incorrect">✗ 不正解</span>
               )}
             </div>
-            <div className="study-explanation-text">{currentQuestion.explanation}</div>
+            <div className="study-explanation-text">{formatText(currentQuestion.explanation)}</div>
           </div>
         )}
       </div>
@@ -176,7 +177,7 @@ export function StudyScreen() {
                   {showCorrectness && isSelected && !isCorrect && '✗'}
                   {!showCorrectness && (isSelected ? '●' : '○')}
                 </div>
-                <div className="study-choice-text">{choice.choice_text}</div>
+                <div className="study-choice-text">{formatText(choice.choice_text)}</div>
               </div>
             )
           })}
