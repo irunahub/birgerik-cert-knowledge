@@ -1,5 +1,5 @@
 import { h } from 'preact'
-import { useStudyStore } from '@/store/study-store'
+import { useStudyStoreAll, studyStore } from '@/store/study-store'
 
 /**
  * 結果画面コンポーネント
@@ -7,7 +7,7 @@ import { useStudyStore } from '@/store/study-store'
  * 学習結果を表示し、間違えた問題を確認できる
  */
 export function ResultScreen() {
-  const { result, session, reset, goToQuestion, setCurrentScreen } = useStudyStore()
+  const { result, session, reset, goToQuestion, setCurrentScreen } = useStudyStoreAll()
 
   if (!result || !session) {
     return (
@@ -146,7 +146,7 @@ export function ResultScreen() {
             const { questionSetId, questionSetName, certificationName, questions } =
               session
             reset()
-            useStudyStore.getState().startSession(
+            studyStore.getState().startSession(
               questionSetId,
               questionSetName,
               certificationName,

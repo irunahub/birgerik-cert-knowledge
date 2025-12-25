@@ -1,4 +1,5 @@
-import { create } from 'zustand'
+import { createStore } from 'zustand/vanilla'
+import { useStore as useZustandStore } from 'zustand'
 import type {
   QuestionWithChoices,
   UserAnswer,
@@ -58,9 +59,9 @@ interface StudyStore {
 }
 
 /**
- * 学習状態管理ストア
+ * 学習状態管理ストア (Vanilla)
  */
-export const useStudyStore = create<StudyStore>((set, get) => ({
+export const studyStore = createStore<StudyStore>((set, get) => ({
   // 初期状態
   currentScreen: 'certifications',
   selectedCertificationId: null,
@@ -238,3 +239,15 @@ export const useStudyStore = create<StudyStore>((set, get) => ({
       result: null,
     }),
 }))
+
+/**
+ * Preact用のフック
+ */
+export function useStudyStore<T>(selector: (state: StudyStore) => T): T {
+  return useZustandStore(studyStore, selector)
+}
+
+// デフォルトエクスポート（全ての状態を取得）
+export function useStudyStoreAll() {
+  return useZustandStore(studyStore)
+}

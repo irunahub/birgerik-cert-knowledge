@@ -1,6 +1,6 @@
 import { h } from 'preact'
 import { useEffect, useState } from 'preact/hooks'
-import { useStudyStore } from '@/store/study-store'
+import { useStudyStoreAll } from '@/store/study-store'
 import type { QuestionWithChoices } from '@/types/api'
 
 /**
@@ -20,7 +20,7 @@ export function StudyScreen() {
     nextQuestion,
     previousQuestion,
     calculateResult,
-  } = useStudyStore()
+  } = useStudyStoreAll()
 
   const [selectedChoices, setSelectedChoices] = useState<string[]>([])
   const [showExplanation, setShowExplanation] = useState(false)

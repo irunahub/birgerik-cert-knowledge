@@ -1,6 +1,6 @@
 import { h } from 'preact'
 import { useState, useEffect } from 'preact/hooks'
-import { useStudyStore } from '@/store/study-store'
+import { useStudyStore, studyStore } from '@/store/study-store'
 import { StudyScreen } from './study-screen'
 import { ResultScreen } from './result-screen'
 import type { BirgerikApiClient } from '@/api/client'
@@ -16,7 +16,7 @@ interface StudyAppProps {
  * 画面遷移を管理
  */
 export function StudyApp({ apiClient }: StudyAppProps) {
-  const { currentScreen } = useStudyStore()
+  const currentScreen = useStudyStore((state) => state.currentScreen)
 
   return (
     <div className="birgerik-app">
@@ -42,7 +42,7 @@ function CertificationListScreen({ apiClient }: { apiClient: BirgerikApiClient }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { setSelectedCertification } = useStudyStore()
+  const setSelectedCertification = useStudyStore((state) => state.setSelectedCertification)
 
   useEffect(() => {
     loadCertifications()
@@ -126,12 +126,10 @@ function QuestionSetListScreen({ apiClient }: { apiClient: BirgerikApiClient }) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const {
-    selectedCertificationId,
-    setCurrentScreen,
-    startSession,
-    setSelectedQuestionSet,
-  } = useStudyStore()
+  const selectedCertificationId = useStudyStore((state) => state.selectedCertificationId)
+  const setCurrentScreen = useStudyStore((state) => state.setCurrentScreen)
+  const startSession = useStudyStore((state) => state.startSession)
+  const setSelectedQuestionSet = useStudyStore((state) => state.setSelectedQuestionSet)
 
   useEffect(() => {
     loadCertifications()
