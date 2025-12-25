@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { NextResponse } from 'next/server'
 import { successResponse, errorResponse, notFoundResponse } from '@/lib/api/response'
 import { getQuestionSetDetail } from '@/lib/database/study'
 import { unstable_cache } from 'next/cache'
@@ -7,11 +6,12 @@ import { unstable_cache } from 'next/cache'
 /**
  * GET /api/v1/study/question-sets/[id]
  * 学習用：問題集の詳細を取得（問題数を含む）
+ * 認証不要・CORS オープン
  */
-export const GET = withAuth(async (
-  _request: NextRequest,
+export async function GET(
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
-) => {
+) {
   try {
     const { id } = await params
 
@@ -35,9 +35,30 @@ export const GET = withAuth(async (
       return errorResponse(result.error, 500)
     }
 
-    return successResponse({ question_set: result.data })
+    const response = successResponse({ question_set: result.data })
+
+    // CORSヘッダーを追加（すべてのオリジンを許可）
+    response.headers.set('Access-Control-Allow-Origin', '*')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+
+    return response
   } catch (error) {
     console.error('Get question set detail error:', error)
     return errorResponse('問題集の取得に失敗しました', 500)
   }
-})
+}
+
+/**
+ * OPTIONS /api/v1/study/question-sets/[id]
+ * CORS Preflightリクエスト対応
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    }
+  })
+}
