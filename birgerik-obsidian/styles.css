@@ -485,9 +485,8 @@
   text-align: center;
 }
 
-/* 問題エリア（40vh、スクロール可能） */
+/* 問題エリア（動的サイズ、スクロール可能） */
 .study-question-area {
-  flex: 0 0 40vh;
   overflow-y: auto;
   padding: 20px;
   background-color: var(--background-primary);
@@ -549,9 +548,44 @@
   white-space: pre-wrap;
 }
 
-/* ボトムシート（60vh） */
+/* リサイズハンドル */
+.study-resize-handle {
+  flex: 0 0 auto;
+  height: 8px;
+  background-color: var(--background-secondary);
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.study-resize-handle:hover {
+  background-color: var(--background-modifier-border-hover);
+}
+
+.study-resize-handle.dragging {
+  background-color: var(--interactive-accent);
+}
+
+.study-resize-handle-line {
+  width: 40px;
+  height: 3px;
+  background-color: var(--text-muted);
+  border-radius: 2px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.study-resize-handle:hover .study-resize-handle-line,
+.study-resize-handle.dragging .study-resize-handle-line {
+  opacity: 1;
+}
+
+/* ボトムシート（動的サイズ） */
 .study-bottom-sheet {
-  flex: 1;
   display: flex;
   flex-direction: column;
   background-color: var(--background-secondary);

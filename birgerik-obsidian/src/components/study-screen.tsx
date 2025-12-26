@@ -25,6 +25,9 @@ export function StudyScreen() {
 
   const [selectedChoices, setSelectedChoices] = useState<string[]>([])
   const [showExplanation, setShowExplanation] = useState(false)
+  // ボトムシートの高さ（デフォルト65%）
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(65)
+  const [isDragging, setIsDragging] = useState(false)
 
   const currentQuestion = getCurrentQuestion()
   const totalQuestions = session?.questions.length || 0
@@ -43,6 +46,39 @@ export function StudyScreen() {
       setShowExplanation(false)
     }
   }, [currentQuestion?.id])
+
+  // リサイズハンドラー
+  const handleMouseDown = () => {
+    setIsDragging(true)
+  }
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = document.querySelector('.birgerik-study-screen')
+      if (!container) return
+
+      const rect = container.getBoundingClientRect()
+      const newHeight = ((rect.bottom - e.clientY) / rect.height) * 100
+
+      // 最小30%、最大80%
+      const clampedHeight = Math.max(30, Math.min(80, newHeight))
+      setBottomSheetHeight(clampedHeight)
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging])
 
   if (!currentQuestion || !session) {
     return (
@@ -115,8 +151,11 @@ export function StudyScreen() {
         </div>
       </div>
 
-      {/* 問題エリア（40vh、スクロール可能） */}
-      <div className="study-question-area">
+      {/* 問題エリア（動的サイズ、スクロール可能） */}
+      <div
+        className="study-question-area"
+        style={{ height: `${100 - bottomSheetHeight}%` }}
+      >
         <div className="study-question-meta">
           問題 {currentQuestionIndex + 1} / {totalQuestions}
           {currentQuestion.is_multiple_choice && (
@@ -145,8 +184,19 @@ export function StudyScreen() {
         )}
       </div>
 
-      {/* ボトムシート（60vh） */}
-      <div className="study-bottom-sheet">
+      {/* リサイズハンドル */}
+      <div
+        className={`study-resize-handle ${isDragging ? 'dragging' : ''}`}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="study-resize-handle-line" />
+      </div>
+
+      {/* ボトムシート（動的サイズ） */}
+      <div
+        className="study-bottom-sheet"
+        style={{ height: `${bottomSheetHeight}%` }}
+      >
         <div className="study-sheet-header">
           {isAnswered ? '回答結果' : '選択肢を選んでください'}
         </div>
