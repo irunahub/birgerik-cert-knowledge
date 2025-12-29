@@ -6,6 +6,12 @@ import type BirgerikPlugin from './main'
  */
 export interface BirgerikSettings {
   apiUrl: string
+  auth: {
+    accessToken: string | null
+    refreshToken: string | null
+    expiresAt: number | null
+    userEmail: string | null
+  }
 }
 
 /**
@@ -13,6 +19,12 @@ export interface BirgerikSettings {
  */
 export const DEFAULT_SETTINGS: BirgerikSettings = {
   apiUrl: 'https://birgerik.vercel.app',
+  auth: {
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null,
+    userEmail: null,
+  },
 }
 
 /**
@@ -33,6 +45,18 @@ export class BirgerikSettingTab extends PluginSettingTab {
 
     // ヘッダー
     containerEl.createEl('h2', { text: 'Birgerik Study 設定' })
+
+    // ログイン状態の表示
+    this.renderAuthStatus(containerEl)
+
+    // 認証セクション
+    if (!this.plugin.authService.isLoggedIn()) {
+      this.renderLoginForm(containerEl)
+    } else {
+      this.renderLoggedInSection(containerEl)
+    }
+
+    containerEl.createEl('hr')
 
     // API URL設定
     new Setting(containerEl)
@@ -110,5 +134,97 @@ export class BirgerikSettingTab extends PluginSettingTab {
       text: '🐛 バグ報告・機能要望',
       href: 'https://github.com/irunadev/birgerik/issues',
     })
+  }
+
+  private renderAuthStatus(container: HTMLElement): void {
+    const statusContainer = container.createDiv('birgerik-auth-status')
+
+    const isLoggedIn = this.plugin.authService.isLoggedIn()
+    const email = this.plugin.authService.getUserEmail()
+
+    if (isLoggedIn) {
+      statusContainer.createEl('p', {
+        text: `✅ ログイン中: ${email}`,
+      })
+    } else {
+      statusContainer.createEl('p', {
+        text: '❌ ログインしていません',
+      })
+    }
+  }
+
+  private renderLoginForm(container: HTMLElement): void {
+    container.createEl('h3', { text: 'ログイン' })
+    container.createEl('p', {
+      text: '管理者から払い出されたメールアドレスとパスワードを入力してください。',
+    })
+
+    let email = ''
+    let password = ''
+
+    new Setting(container)
+      .setName('メールアドレス')
+      .setDesc('管理者から払い出されたメールアドレス')
+      .addText((text) =>
+        text.setPlaceholder('user@example.com').onChange((value) => {
+          email = value
+        })
+      )
+
+    new Setting(container)
+      .setName('パスワード')
+      .setDesc('管理者から払い出されたパスワード')
+      .addText((text) => {
+        text.inputEl.type = 'password'
+        text.setPlaceholder('パスワード').onChange((value) => {
+          password = value
+        })
+      })
+
+    new Setting(container).addButton((button) =>
+      button
+        .setButtonText('ログイン')
+        .setCta()
+        .onClick(async () => {
+          if (!email || !password) {
+            return
+          }
+
+          button.setDisabled(true)
+          button.setButtonText('ログイン中...')
+
+          const success = await this.plugin.authService.login(email, password)
+
+          if (success) {
+            this.display() // 画面を再描画
+          }
+
+          button.setDisabled(false)
+          button.setButtonText('ログイン')
+        })
+    )
+  }
+
+  private renderLoggedInSection(container: HTMLElement): void {
+    container.createEl('h3', { text: 'アカウント情報' })
+
+    const email = this.plugin.authService.getUserEmail()
+
+    new Setting(container)
+      .setName('ログイン中のアカウント')
+      .setDesc(email || '不明')
+
+    new Setting(container)
+      .setName('ログアウト')
+      .setDesc('Birgerikからログアウトします')
+      .addButton((button) =>
+        button
+          .setButtonText('ログアウト')
+          .setWarning()
+          .onClick(async () => {
+            await this.plugin.authService.logout()
+            this.display() // 画面を再描画
+          })
+      )
   }
 }

@@ -2,6 +2,7 @@ import { Plugin, WorkspaceLeaf } from 'obsidian'
 import { BirgerikApiClient } from './api/client'
 import { BirgerikSettingTab, DEFAULT_SETTINGS, type BirgerikSettings } from './settings'
 import { BirgerikStudyView, VIEW_TYPE_BIRGERIK } from './views/study-view'
+import { AuthService } from './services/auth-service'
 
 /**
  * Birgerik Study プラグイン
@@ -10,14 +11,21 @@ import { BirgerikStudyView, VIEW_TYPE_BIRGERIK } from './views/study-view'
  */
 export default class BirgerikPlugin extends Plugin {
   settings!: BirgerikSettings
+  authService!: AuthService
   apiClient!: BirgerikApiClient
 
   async onload() {
     // 設定を読み込み
     await this.loadSettings()
 
+    // 認証サービスを初期化
+    this.authService = new AuthService(
+      this.settings,
+      this.saveSettings.bind(this)
+    )
+
     // APIクライアントを初期化
-    this.apiClient = new BirgerikApiClient(this.settings.apiUrl)
+    this.apiClient = new BirgerikApiClient(this.settings.apiUrl, this.authService)
 
     // ビューを登録
     this.registerView(VIEW_TYPE_BIRGERIK, (leaf) => new BirgerikStudyView(leaf, this))
