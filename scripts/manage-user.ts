@@ -187,22 +187,40 @@ async function banUser(supabase: SupabaseClient<any, any, any>, email: string) {
 
   const user = await getUserByEmail(supabase, email)
 
+  log(`User ID: ${user.id}`, 'gray')
+  log('')
+
   // Ban user for a very long time (effectively permanent)
-  // Supabase accepts duration strings like '24h', '7d', '876000h'
-  const { error } = await supabase.auth.admin.updateUserById(user.id, {
-    ban_duration: '876000h', // 100 years (100 * 365 * 24 hours)
+  // Using seconds instead of hours: 100 years = 3153600000 seconds
+  const banDurationSeconds = 100 * 365 * 24 * 60 * 60 // 100 years in seconds
+
+  const { data, error } = await supabase.auth.admin.updateUserById(user.id, {
+    ban_duration: banDurationSeconds,
   })
 
   if (error) {
     log('❌ Failed to ban user', 'red')
     log(`Error: ${error.message}`, 'red')
+    console.error('Full error:', error)
     process.exit(1)
   }
 
   log('✅ User banned successfully!', 'green')
   log('', 'reset')
+
+  if (data && data.user) {
+    const bannedUser = data.user as any
+    if (bannedUser.banned_until) {
+      log(`Banned until: ${formatDate(bannedUser.banned_until)}`, 'yellow')
+    }
+  }
+
+  log('')
   log('ℹ️  All active tokens for this user have been invalidated.', 'yellow')
   log('The user will not be able to log in or use the API.', 'yellow')
+  log('')
+  log('💡 Verify the ban status:', 'cyan')
+  log(`   pnpm run manage-user info ${email}`, 'cyan')
 }
 
 /**
@@ -217,20 +235,27 @@ async function unbanUser(
 
   const user = await getUserByEmail(supabase, email)
 
-  // Unban user by setting ban_duration to 0
-  const { error } = await supabase.auth.admin.updateUserById(user.id, {
-    ban_duration: '0h',
+  log(`User ID: ${user.id}`, 'gray')
+  log('')
+
+  // Unban user by setting ban_duration to 0 seconds
+  const { data, error } = await supabase.auth.admin.updateUserById(user.id, {
+    ban_duration: 0,
   })
 
   if (error) {
     log('❌ Failed to unban user', 'red')
     log(`Error: ${error.message}`, 'red')
+    console.error('Full error:', error)
     process.exit(1)
   }
 
   log('✅ User unbanned successfully!', 'green')
   log('', 'reset')
   log('ℹ️  The user can now log in and use the API.', 'yellow')
+  log('')
+  log('💡 Verify the unban status:', 'cyan')
+  log(`   pnpm run manage-user info ${email}`, 'cyan')
 }
 
 async function main() {
