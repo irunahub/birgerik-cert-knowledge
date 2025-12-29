@@ -66,7 +66,8 @@ export class BirgerikApiClient {
       throw new Error(error.error || '資格一覧の取得に失敗しました')
     }
 
-    return await response.json()
+    const result = await response.json()
+    return result.data
   }
 
   /**
@@ -84,7 +85,8 @@ export class BirgerikApiClient {
       throw new Error(error.error || '問題集の取得に失敗しました')
     }
 
-    return await response.json()
+    const result = await response.json()
+    return result.data
   }
 
   /**
@@ -102,7 +104,8 @@ export class BirgerikApiClient {
       throw new Error(error.error || '問題一覧の取得に失敗しました')
     }
 
-    return await response.json()
+    const result = await response.json()
+    return result.data
   }
 
   /**
