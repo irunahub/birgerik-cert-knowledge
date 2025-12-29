@@ -17,8 +17,23 @@
  * If password is not provided, a random secure password will be generated.
  */
 
+import { config } from 'dotenv'
+import { existsSync } from 'fs'
+import { resolve } from 'path'
 import { createClient } from '@supabase/supabase-js'
 import * as crypto from 'crypto'
+
+// Load environment variables from .env.local or .env
+const envLocalPath = resolve(process.cwd(), '.env.local')
+const envPath = resolve(process.cwd(), '.env')
+
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath })
+} else if (existsSync(envPath)) {
+  config({ path: envPath })
+} else {
+  console.warn('⚠️  No .env.local or .env file found. Using system environment variables.')
+}
 
 // Color codes for terminal output
 const colors = {

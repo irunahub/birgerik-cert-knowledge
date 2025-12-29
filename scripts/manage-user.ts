@@ -23,8 +23,23 @@
  *   npm run manage-user unban user@example.com
  */
 
+import { config } from 'dotenv'
+import { existsSync } from 'fs'
+import { resolve } from 'path'
 import { createClient } from '@supabase/supabase-js'
 import type { User, SupabaseClient } from '@supabase/supabase-js'
+
+// Load environment variables from .env.local or .env
+const envLocalPath = resolve(process.cwd(), '.env.local')
+const envPath = resolve(process.cwd(), '.env')
+
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath })
+} else if (existsSync(envPath)) {
+  config({ path: envPath })
+} else {
+  console.warn('⚠️  No .env.local or .env file found. Using system environment variables.')
+}
 
 // Extend User type to include banned_until field
 type UserWithBan = User & {
