@@ -30,6 +30,7 @@ export function MarkdownEditor({
   }), [])
 
   const editor = useEditor({
+    immediatelyRender: false, // SSRエラーを回避
     extensions: [
       StarterKit.configure({
         heading: {
