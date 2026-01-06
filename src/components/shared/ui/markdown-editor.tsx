@@ -1,7 +1,6 @@
 'use client'
 
 import { useEditor, EditorContent, Editor } from '@tiptap/react'
-import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import StarterKit from '@tiptap/starter-kit'
 import CharacterCount from '@tiptap/extension-character-count'
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
@@ -96,9 +95,6 @@ export function MarkdownEditor({
             class: 'bg-gray-900 text-gray-100 p-3 rounded-md font-mono text-sm overflow-x-auto',
           },
         },
-      }),
-      BubbleMenuExtension.configure({
-        element: bubbleMenuRef.current || document.createElement('div'),
       }),
       CharacterCount,
     ],
