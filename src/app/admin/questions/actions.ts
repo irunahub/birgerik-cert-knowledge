@@ -91,15 +91,9 @@ export async function updateQuestion(
 
     console.log('Validation passed!')
 
-    // explanationの空文字をnullに変換
-    const input = {
-      ...result.data,
-      explanation: result.data.explanation.trim() === '' ? null : result.data.explanation,
-    }
-
     console.log('Calling database update...')
-    // lib/database の関数を呼び出し
-    const dbResult = await dbUpdateQuestion(id, input)
+    // lib/database の関数を呼び出し（questionSchemaのtransformで空文字→nullに変換される）
+    const dbResult = await dbUpdateQuestion(id, result.data)
 
     if (!dbResult.success) {
       console.error('Database update failed:', dbResult.error)
