@@ -7,6 +7,7 @@
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import rehypeSanitize from 'rehype-sanitize'
 import type { Components } from 'react-markdown'
 
@@ -104,7 +105,7 @@ export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProp
   return (
     <div className={`markdown-preview ${className}`}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         rehypePlugins={[rehypeSanitize]}
         components={components}
       >

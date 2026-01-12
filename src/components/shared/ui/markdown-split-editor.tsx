@@ -11,6 +11,8 @@
 import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils/cn'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 
@@ -81,6 +83,7 @@ export function MarkdownSplitEditor({
               disabled: disabled,
             }}
             previewOptions={{
+              remarkPlugins: [remarkGfm, remarkBreaks],
               rehypeRewrite: (node: any, index: number, parent: any) => {
                 // セキュリティ: 外部リンクをnoopener noreferrerで開く
                 if (
