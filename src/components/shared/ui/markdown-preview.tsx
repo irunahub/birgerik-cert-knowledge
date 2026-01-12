@@ -14,9 +14,14 @@ import type { Components } from 'react-markdown'
 interface MarkdownPreviewProps {
   content: string
   className?: string
+  showLineNumbers?: boolean // コードブロックに行番号を表示するかどうか
 }
 
-export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProps) {
+export function MarkdownPreview({
+  content,
+  className = '',
+  showLineNumbers = false
+}: MarkdownPreviewProps) {
   // カスタムコンポーネント：マークダウン要素のスタイリング
   const components: Partial<Components> = {
     // 見出し
@@ -58,6 +63,31 @@ export function MarkdownPreview({ content, className = '' }: MarkdownPreviewProp
           </code>
         )
       }
+
+      // ブロックコード
+      const codeString = String(children).replace(/\n$/, '')
+      const lines = codeString.split('\n')
+
+      if (showLineNumbers) {
+        // 行番号付きコードブロック
+        return (
+          <code
+            className={`block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono ${className || ''}`}
+            {...props}
+          >
+            {lines.map((line, index) => (
+              <div key={index} className="flex">
+                <span className="inline-block w-10 text-right pr-4 text-gray-500 select-none flex-shrink-0">
+                  {index + 1}
+                </span>
+                <span className="flex-1 whitespace-pre">{line || '\n'}</span>
+              </div>
+            ))}
+          </code>
+        )
+      }
+
+      // 行番号なしコードブロック
       return (
         <code
           className={`block bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono text-foreground ${className || ''}`}
