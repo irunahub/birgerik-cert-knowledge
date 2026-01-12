@@ -36,7 +36,7 @@ export function htmlToMarkdown(html: string | null): string {
     listContent = listContent.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
     // Remove any remaining whitespace/newlines between items
     listContent = listContent.replace(/\n\s*\n/g, '\n')
-    return listContent + '\n'
+    return '\n' + listContent + '\n'
   })
 
   // Ordered lists
@@ -49,7 +49,7 @@ export function htmlToMarkdown(html: string | null): string {
     })
     // Remove any remaining whitespace/newlines between items
     listContent = listContent.replace(/\n\s*\n/g, '\n')
-    return listContent + '\n'
+    return '\n' + listContent + '\n'
   })
 
   // Paragraphs

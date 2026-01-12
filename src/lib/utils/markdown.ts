@@ -25,35 +25,90 @@ function formatText(text: string, useBr = false): string {
 export function parseMarkdownToHtml(content: string, withLineNumbers = false, useBr = false): string {
   if (!content) return withLineNumbers || useBr ? '<p></p>' : ''
 
+  let result = content
+
+  // コードブロックの処理
   const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g
-  let lastIndex = 0
-  let result = ''
-  let match
-
-  while ((match = codeBlockRegex.exec(content)) !== null) {
-    const beforeText = content.substring(lastIndex, match.index)
-    if (beforeText) result += useBr ? `<p>${escapeHtml(beforeText).replace(/\n/g, '<br>')}</p>` : formatText(beforeText)
-
-    const language = match[1] || ''
-    const code = match[2].replace(/\n+$/, '')
-
+  const codeBlocks: string[] = []
+  result = result.replace(codeBlockRegex, (match, language, code) => {
+    const cleanCode = code.replace(/\n+$/, '')
+    let html = ''
     if (withLineNumbers) {
-      const numberedLines = code.split('\n').map((line, i) =>
+      const numberedLines = cleanCode.split('\n').map((line: string, i: number) =>
         `<span class="code-line"><span class="line-number">${i + 1}</span><span class="line-content">${escapeHtml(line)}</span></span>`
       ).join('\n')
-      result += `<pre class="code-block"><code class="language-${language}">${numberedLines}</code></pre>`
+      html = `<pre class="code-block"><code class="language-${language}">${numberedLines}</code></pre>`
     } else {
-      result += `<pre><code class="language-${language}">${escapeHtml(code)}</code></pre>`
+      html = `<pre><code class="language-${language}">${escapeHtml(cleanCode)}</code></pre>`
     }
+    const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`
+    codeBlocks.push(html)
+    return placeholder
+  })
 
-    lastIndex = match.index + match[0].length
-  }
+  // 見出しの処理
+  result = result.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, text) => {
+    const level = hashes.length
+    return `<h${level}>${escapeHtml(text)}</h${level}>`
+  })
 
-  const afterText = content.substring(lastIndex)
-  if (afterText || lastIndex === 0) {
-    const trimmed = lastIndex > 0 ? afterText.replace(/^\n+/, '') : afterText
-    result += useBr ? `<p>${escapeHtml(trimmed).replace(/\n/g, '<br>')}</p>` : formatText(trimmed)
-  }
+  // 箇条書きリスト（-、*、+）の処理
+  result = result.replace(/(^|\n\n)((?:[-*+]\s+.+(?:\n|$))+)/g, (match, prefix, listContent) => {
+    const items = listContent
+      .trim()
+      .split('\n')
+      .map((line: string) => {
+        const itemMatch = line.match(/^[-*+]\s+(.+)$/)
+        return itemMatch ? `<li>${escapeHtml(itemMatch[1])}</li>` : ''
+      })
+      .filter(Boolean)
+      .join('')
+    return prefix + `<ul>${items}</ul>`
+  })
+
+  // 番号付きリスト（1.、2.など）の処理
+  result = result.replace(/(^|\n\n)((?:\d+\.\s+.+(?:\n|$))+)/g, (match, prefix, listContent) => {
+    const items = listContent
+      .trim()
+      .split('\n')
+      .map((line: string) => {
+        const itemMatch = line.match(/^\d+\.\s+(.+)$/)
+        return itemMatch ? `<li>${escapeHtml(itemMatch[1])}</li>` : ''
+      })
+      .filter(Boolean)
+      .join('')
+    return prefix + `<ol>${items}</ol>`
+  })
+
+  // 太字、斜体、インラインコードの処理
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  result = result.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  result = result.replace(/`(.+?)`/g, '<code>$1</code>')
+
+  // 段落の処理（リストとコードブロック以外）
+  result = result
+    .split(/\n\n+/)
+    .map((block: string) => {
+      const trimmed = block.trim()
+      // HTMLタグ、コードブロックプレースホルダー、空文字はそのまま
+      if (!trimmed || trimmed.startsWith('<') || trimmed.startsWith('___CODE_BLOCK_')) {
+        return trimmed
+      }
+      // 1行のテキストは段落タグで囲む
+      const lines = trimmed.split('\n').filter((line: string) => line.trim())
+      if (lines.length === 0) return ''
+      if (useBr) {
+        return `<p>${lines.join('<br>')}</p>`
+      }
+      return lines.map((line: string) => `<p>${line}</p>`).join('')
+    })
+    .filter(Boolean)
+    .join('')
+
+  // コードブロックのプレースホルダーを戻す
+  codeBlocks.forEach((code, index) => {
+    result = result.replace(`___CODE_BLOCK_${index}___`, code)
+  })
 
   return result || '<p></p>'
 }
