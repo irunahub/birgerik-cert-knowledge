@@ -51,29 +51,39 @@ export function MarkdownPreview({
             return <code className={className} {...props}>{children}</code>
           }
 
-          const codeString = String(children).replace(/\n$/, '')
+          // childrenを文字列に変換
+          const codeContent = typeof children === 'string'
+            ? children
+            : Array.isArray(children)
+            ? children.join('')
+            : String(children)
+
+          const codeString = codeContent.replace(/\n$/, '')
           const lines = codeString.split('\n')
 
           return (
             <code className={className} {...props}>
-              {lines.map((line, index) => (
-                <div key={index} style={{ display: 'flex' }}>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: '2.5rem',
-                      textAlign: 'right',
-                      paddingRight: '1rem',
-                      color: '#6b7280',
-                      userSelect: 'none',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {index + 1}
-                  </span>
-                  <span style={{ flex: 1, whiteSpace: 'pre' }}>{line || '\n'}</span>
-                </div>
-              ))}
+              <div style={{ display: 'table', width: '100%' }}>
+                {lines.map((line, index) => (
+                  <div key={index} style={{ display: 'table-row' }}>
+                    <span
+                      style={{
+                        display: 'table-cell',
+                        width: '2.5rem',
+                        textAlign: 'right',
+                        paddingRight: '1rem',
+                        color: '#6b7280',
+                        userSelect: 'none',
+                      }}
+                    >
+                      {index + 1}
+                    </span>
+                    <span style={{ display: 'table-cell', whiteSpace: 'pre' }}>
+                      {line || ' '}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </code>
           )
         },
@@ -81,7 +91,7 @@ export function MarkdownPreview({
     : undefined
 
   return (
-    <div className={className} data-color-mode="light">
+    <div className={`wmde-markdown wmde-markdown-color ${className}`} data-color-mode="light">
       <MarkdownPreviewLib
         source={content}
         remarkPlugins={[remarkGfm, remarkBreaks]}
