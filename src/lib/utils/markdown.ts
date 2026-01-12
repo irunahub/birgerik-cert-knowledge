@@ -22,6 +22,71 @@ function formatText(text: string, useBr = false): string {
   return escaped.split('\n').map(line => line.trim() ? `<p>${line}</p>` : '').join('')
 }
 
+/**
+ * インラインマークダウン（リンク、太字、斜体、コード）を処理する
+ * プレースホルダーを使って安全にエスケープとマークダウン処理を両立
+ */
+function processInlineMarkdown(text: string): string {
+  let result = text
+
+  // リンクの処理 [ラベル](URL) - プレースホルダーに置き換え
+  const links: string[] = []
+  result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+    const escapedText = escapeHtml(linkText)
+    const escapedUrl = escapeHtml(url)
+    const link = `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer">${escapedText}</a>`
+    const placeholder = `___LINK_${links.length}___`
+    links.push(link)
+    return placeholder
+  })
+
+  // 太字の処理 - プレースホルダーに置き換え
+  const bolds: string[] = []
+  result = result.replace(/\*\*(.+?)\*\*/g, (match, content) => {
+    const bold = `<strong>${escapeHtml(content)}</strong>`
+    const placeholder = `___BOLD_${bolds.length}___`
+    bolds.push(bold)
+    return placeholder
+  })
+
+  // 斜体の処理 - プレースホルダーに置き換え
+  const italics: string[] = []
+  result = result.replace(/\*(.+?)\*/g, (match, content) => {
+    const italic = `<em>${escapeHtml(content)}</em>`
+    const placeholder = `___ITALIC_${italics.length}___`
+    italics.push(italic)
+    return placeholder
+  })
+
+  // インラインコードの処理 - プレースホルダーに置き換え
+  const codes: string[] = []
+  result = result.replace(/`(.+?)`/g, (match, content) => {
+    const code = `<code>${escapeHtml(content)}</code>`
+    const placeholder = `___CODE_${codes.length}___`
+    codes.push(code)
+    return placeholder
+  })
+
+  // 残りのテキストをエスケープ
+  result = escapeHtml(result)
+
+  // プレースホルダーを元に戻す
+  links.forEach((link, index) => {
+    result = result.replace(`___LINK_${index}___`, link)
+  })
+  bolds.forEach((bold, index) => {
+    result = result.replace(`___BOLD_${index}___`, bold)
+  })
+  italics.forEach((italic, index) => {
+    result = result.replace(`___ITALIC_${index}___`, italic)
+  })
+  codes.forEach((code, index) => {
+    result = result.replace(`___CODE_${index}___`, code)
+  })
+
+  return result
+}
+
 export function parseMarkdownToHtml(content: string, withLineNumbers = false, useBr = false): string {
   if (!content) return withLineNumbers || useBr ? '<p></p>' : ''
 
@@ -49,7 +114,7 @@ export function parseMarkdownToHtml(content: string, withLineNumbers = false, us
   // 見出しの処理
   result = result.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, text) => {
     const level = hashes.length
-    return `<h${level}>${escapeHtml(text)}</h${level}>`
+    return `<h${level}>${processInlineMarkdown(text)}</h${level}>`
   })
 
   // 箇条書きリスト（-、*、+）の処理
@@ -59,7 +124,7 @@ export function parseMarkdownToHtml(content: string, withLineNumbers = false, us
       .split('\n')
       .map((line: string) => {
         const itemMatch = line.match(/^[-*+]\s+(.+)$/)
-        return itemMatch ? `<li>${escapeHtml(itemMatch[1])}</li>` : ''
+        return itemMatch ? `<li>${processInlineMarkdown(itemMatch[1])}</li>` : ''
       })
       .filter(Boolean)
       .join('')
@@ -73,17 +138,12 @@ export function parseMarkdownToHtml(content: string, withLineNumbers = false, us
       .split('\n')
       .map((line: string) => {
         const itemMatch = line.match(/^\d+\.\s+(.+)$/)
-        return itemMatch ? `<li>${escapeHtml(itemMatch[1])}</li>` : ''
+        return itemMatch ? `<li>${processInlineMarkdown(itemMatch[1])}</li>` : ''
       })
       .filter(Boolean)
       .join('')
     return prefix + `<ol>${items}</ol>`
   })
-
-  // 太字、斜体、インラインコードの処理
-  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  result = result.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  result = result.replace(/`(.+?)`/g, '<code>$1</code>')
 
   // 段落の処理（リストとコードブロック以外）
   result = result
@@ -94,13 +154,14 @@ export function parseMarkdownToHtml(content: string, withLineNumbers = false, us
       if (!trimmed || trimmed.startsWith('<') || trimmed.startsWith('___CODE_BLOCK_')) {
         return trimmed
       }
-      // 1行のテキストは段落タグで囲む
+      // 1行のテキストは段落タグで囲む（インライン処理を適用）
       const lines = trimmed.split('\n').filter((line: string) => line.trim())
       if (lines.length === 0) return ''
       if (useBr) {
-        return `<p>${lines.join('<br>')}</p>`
+        const processedLines = lines.map((line: string) => processInlineMarkdown(line)).join('<br>')
+        return `<p>${processedLines}</p>`
       }
-      return lines.map((line: string) => `<p>${line}</p>`).join('')
+      return lines.map((line: string) => `<p>${processInlineMarkdown(line)}</p>`).join('')
     })
     .filter(Boolean)
     .join('')

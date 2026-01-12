@@ -79,6 +79,13 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         .markdown-content :global(em) {
           font-style: italic;
         }
+        .markdown-content :global(a) {
+          color: #2563eb;
+          text-decoration: underline;
+        }
+        .markdown-content :global(a:hover) {
+          color: #1e40af;
+        }
       `}</style>
     </>
   )
