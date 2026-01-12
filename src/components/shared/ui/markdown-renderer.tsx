@@ -1,5 +1,11 @@
 'use client'
 
+/**
+ * マークダウンレンダラーコンポーネント
+ *
+ * 学習モードでの問題文・解説文の表示に使用します。
+ */
+
 import { useMemo } from 'react'
 import { parseMarkdownToHtml } from '@/lib/utils/markdown'
 
@@ -72,6 +78,26 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         }
         .markdown-content :global(em) {
           font-style: italic;
+        }
+        .markdown-content :global(a) {
+          color: #2563eb;
+          text-decoration: underline;
+        }
+        .markdown-content :global(a:hover) {
+          color: #1e40af;
+        }
+        .markdown-content :global(ul) {
+          list-style-type: disc;
+          padding-left: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .markdown-content :global(ol) {
+          list-style-type: decimal;
+          padding-left: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .markdown-content :global(li) {
+          margin-bottom: 0.25rem;
         }
       `}</style>
     </>
