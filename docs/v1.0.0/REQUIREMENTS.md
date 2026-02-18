@@ -14,7 +14,11 @@
 | **Birgerik Web** | エンドユーザ向け学習・試験アプリケーション | Vercel (Next.js) |
 | **Birgerik Obs** | Obsidian プラグイン | Obsidian (TypeScript) |
 
-### 1.3 現行構成からの変更点
+### 1.3 アーキテクチャ図
+
+詳細なアーキテクチャ図は [ARCHITECTURE.md](./ARCHITECTURE.md) を参照。
+
+### 1.4 現行構成からの変更点
 
 ```
 【現行構成（v0.x）】
@@ -513,16 +517,17 @@ interface QuestionSetSummary {
 
 ### 6.1 リポジトリ一覧
 
-| リポジトリ | 説明 |
-|-----------|------|
-| `birgerik` | Birgerik Core（現行リポジトリを転用） |
-| `birgerik-web` | Birgerik Web（新規リポジトリ） |
-| `birgerik-obs` | Birgerik Obs（新規リポジトリ） |
+| リポジトリ | 説明 | 状態 |
+|-----------|------|------|
+| `birgerik` | 現行システム（v1.0.0 安定稼働まで維持） | 既存・維持 |
+| `birgerik-core` | Birgerik Core | **新規作成** |
+| `birgerik-web` | Birgerik Web | **新規作成** |
+| `birgerik-obs` | Birgerik Obs | **新規作成** |
 
 ### 6.2 Birgerik Core ディレクトリ構成（想定）
 
 ```
-birgerik/
+birgerik-core/
 ├── packages/
 │   └── types/                    # @birgerik/types（GitHub Packages で公開）
 │       ├── src/
@@ -630,40 +635,50 @@ birgerik-obs/
 
 ## 7. 現行システムからの移行方針
 
-### 7.1 Birgerik Core
+### 7.1 基本方針
 
-現行リポジトリ `birgerik` をそのまま Birgerik Core として使用する。
+**現行リポジトリ `birgerik` は v1.0.0 の全システムが安定稼働するまで維持する。**
+Birgerik Core を含む全システムを新規リポジトリで構築し、段階的に移行する。
+
+```
+【移行タイムライン】
+
+Phase A: 並行開発
+  birgerik（現行）     ──── 稼働中 ──── 稼働中 ──── 稼働中 ────┐
+  birgerik-core（新規） ──── 開発 ────── 開発 ────── テスト ────┤
+  birgerik-web（新規）  ──── 開発 ────── 開発 ────── テスト ────┤
+  birgerik-obs（新規）  ──── 開発 ────── 開発 ────── テスト ────┤
+                                                              ↓
+Phase B: 切り替え
+  birgerik（現行）     ──── 停止 ────────────────── アーカイブ
+  birgerik-core        ──── 本番稼働 ───────────────→
+  birgerik-web         ──── 本番稼働 ───────────────→
+  birgerik-obs         ──── 本番稼働 ───────────────→
+```
+
+### 7.2 Birgerik Core（新規リポジトリ `birgerik-core`）
+
+現行リポジトリのコードを参照しつつ、新規リポジトリとして構築する。
 
 | 対象 | 方針 |
 |------|------|
-| REST API | 現行踏襲 + `exams` エンドポイント追加 |
-| 管理 UI | 現行踏襲 + 試験管理・ユーザ管理 UI 追加 |
-| 学習 UI (`/study`, `/exam`) | **削除**（Birgerik Web へ移管） |
+| REST API | 現行の API 設計・DB 層を移植 + `exams` エンドポイント追加 |
+| 管理 UI | 現行の管理 UI を移植 + 試験管理・ユーザ管理 UI 追加 + デザイン刷新 |
+| 学習 UI | **含めない**（Birgerik Web の責務） |
 | `packages/types` | 試験関連型を追加し GitHub Packages で公開 |
-| データベース層 | `exams` テーブル対応を追加 |
+| データベース | 同一の Supabase インスタンスを使用（スキーマ拡張） |
 
-**削除対象:**
-- `src/app/study/` 配下すべて
-- `src/app/exam/` 配下すべて
-- `src/components/study/` 配下すべて
-- `src/store/study-store.ts`
-- ホームページ（`src/app/page.tsx`）のエンドユーザ向け UI
-
-### 7.2 Birgerik Web
-
-新規リポジトリとして構築する。
+### 7.3 Birgerik Web（新規リポジトリ `birgerik-web`）
 
 | 対象 | 方針 |
 |------|------|
-| 学習モード | 現行 `/study` の機能を移植 + デザイン刷新 |
+| 学習モード | 現行 `/study` の機能仕様を踏襲 + デザイン刷新 |
 | 試験モード | 新規実装 |
-| API 通信 | Server Actions → REST API クライアントに変更 |
-| 状態管理 | 現行 Zustand ストアを移植 + 試験用ストア追加 |
+| API 通信 | Birgerik Core の REST API を利用 |
+| 状態管理 | 現行 Zustand ストアの設計を参考に新規実装 |
 | 共通型 | `@birgerik/types` を GitHub Packages から取得 |
 
-### 7.3 Birgerik Obs
-
-新規リポジトリとして構築する。
+### 7.4 Birgerik Obs（新規リポジトリ `birgerik-obs`）
 
 | 対象 | 方針 |
 |------|------|
@@ -671,6 +686,14 @@ birgerik-obs/
 | 試験モード | Birgerik Web と同等の機能を Preact で実装 |
 | API 通信 | fetch による REST API クライアント |
 | 共通型 | `@birgerik/types` を GitHub Packages から取得 |
+
+### 7.5 現行リポジトリ `birgerik` の扱い
+
+| フェーズ | 状態 | 説明 |
+|----------|------|------|
+| 並行開発期間 | **稼働** | 新システム開発中も現行システムでサービス提供を継続 |
+| v1.0.0 リリース後 | **停止** | DNS / Vercel のデプロイ先を新システムへ切り替え |
+| 安定稼働確認後 | **アーカイブ** | リポジトリを読み取り専用にし、参照用として保存 |
 
 ---
 
