@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit2, Trash2, LayoutList, Filter, Eye } from 'lucide-react'
 import { QuestionFormModal } from '@/components/admin/questions/question-form-modal'
 import { DeleteConfirmationDialog } from '@/components/admin/questions/delete-confirmation-dialog'
@@ -29,6 +30,7 @@ interface QuestionListProps {
 }
 
 export function QuestionList({ initialQuestions, questionSets }: QuestionListProps) {
+  const router = useRouter()
   const [questions] = useState(initialQuestions)
   const [selectedCertificationId, setSelectedCertificationId] = useState<string>('all')
   const [selectedQuestionSetId, setSelectedQuestionSetId] = useState<string>('all')
@@ -37,7 +39,7 @@ export function QuestionList({ initialQuestions, questionSets }: QuestionListPro
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionWithRelations | null>(null)
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null)
 
-  const handleRefresh = () => window.location.reload()
+  const handleRefresh = () => router.refresh()
 
   const uniqueCertifications = Array.from(
     new Map(

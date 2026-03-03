@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit2, Trash2, Users, Shield, User } from 'lucide-react'
 import { UserFormModal } from '@/components/admin/users/user-form-modal'
 import { DeleteConfirmationDialog } from '@/components/admin/users/delete-confirmation-dialog'
@@ -19,12 +20,13 @@ interface UserListProps {
 }
 
 export function UserList({ initialUsers }: UserListProps) {
+  const router = useRouter()
   const [users] = useState(initialUsers)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null)
 
-  const handleRefresh = () => window.location.reload()
+  const handleRefresh = () => router.refresh()
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—'

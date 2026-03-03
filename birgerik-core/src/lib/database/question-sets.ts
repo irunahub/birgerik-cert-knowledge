@@ -34,7 +34,7 @@ export async function getQuestionSetsForSelect() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('question_sets')
-    .select('id, name, is_active, certification:certifications (id, name)')
+    .select('id, name, certification:certifications (id, name)')
     .order('name', { ascending: true })
 
   if (error) throw handleSupabaseError(error)

@@ -1,7 +1,6 @@
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { LogoutButton } from '@/components/admin/logout-button'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 export default async function AdminLayout({
   children,
@@ -11,8 +10,10 @@ export default async function AdminLayout({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  // ログインページ（user が null）はシェルなしで children のみ描画。
+  // 認証保護は middleware が担当しているため、ここでリダイレクトしない。
   if (!user) {
-    redirect('/admin/login')
+    return <>{children}</>
   }
 
   return (

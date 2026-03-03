@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { BookHeart, Award, FolderHeart, LayoutList, CheckCircle, Users } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { BookHeart, Award, FolderHeart, LayoutList, CheckCircle, Users, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 const navItems = [
@@ -15,6 +15,22 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  const handleNav = (href: string) => {
+    if (pathname === href) return
+    setPendingHref(href)
+    startTransition(() => {
+      router.push(href)
+    })
+  }
+
+  // トランジション完了後にリセット
+  if (!isPending && pendingHref) {
+    setPendingHref(null)
+  }
 
   return (
     <aside className="w-64 bg-white border-r border-teal-100 flex flex-col shrink-0 shadow-sm">
@@ -30,20 +46,28 @@ export function AdminSidebar() {
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {navItems.map(({ href, icon: Icon, label }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
+          const isLoading = pendingHref === href && isPending
+
           return (
-            <Link
+            <button
               key={href}
-              href={href}
+              onClick={() => handleNav(href)}
+              disabled={isPending}
               className={cn(
                 'flex items-center gap-3 px-4 py-2.5 w-full rounded-xl text-sm font-bold transition-all duration-300',
                 isActive
                   ? 'bg-teal-400 text-white shadow-md shadow-teal-200 translate-x-1'
-                  : 'text-gray-500 hover:bg-teal-50 hover:text-teal-600'
+                  : 'text-gray-500 hover:bg-teal-50 hover:text-teal-600',
+                isPending && !isLoading && 'opacity-60 cursor-default'
               )}
             >
-              <Icon className="w-4 h-4" />
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Icon className="w-4 h-4" />
+              )}
               {label}
-            </Link>
+            </button>
           )
         })}
       </nav>

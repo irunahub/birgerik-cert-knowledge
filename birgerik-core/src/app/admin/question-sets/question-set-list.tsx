@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit2, Trash2, FolderHeart } from 'lucide-react'
 import { QuestionSetFormModal } from '@/components/admin/question-sets/question-set-form-modal'
 import { DeleteConfirmationDialog } from '@/components/admin/question-sets/delete-confirmation-dialog'
@@ -27,12 +28,13 @@ interface QuestionSetListProps {
 }
 
 export function QuestionSetList({ initialQuestionSets, certifications }: QuestionSetListProps) {
+  const router = useRouter()
   const [questionSets, setQuestionSets] = useState(initialQuestionSets)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedQuestionSet, setSelectedQuestionSet] = useState<QuestionSetRow | null>(null)
 
-  const handleRefresh = () => window.location.reload()
+  const handleRefresh = () => router.refresh()
 
   const handleEdit = (qs: QuestionSetRow) => {
     setSelectedQuestionSet(qs)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit2, Trash2, CheckCircle } from 'lucide-react'
 import { ExamFormModal } from '@/components/admin/exams/exam-form-modal'
 import { DeleteConfirmationDialog } from '@/components/admin/exams/delete-confirmation-dialog'
@@ -24,12 +25,13 @@ interface ExamListProps {
 }
 
 export function ExamList({ initialExams, questionSets }: ExamListProps) {
+  const router = useRouter()
   const [exams] = useState(initialExams)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedExam, setSelectedExam] = useState<ExamRow | null>(null)
 
-  const handleRefresh = () => window.location.reload()
+  const handleRefresh = () => router.refresh()
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Edit2, Trash2, Award } from 'lucide-react'
 import { CertificationFormModal } from '@/components/admin/certifications/certification-form-modal'
 import { DeleteConfirmationDialog } from '@/components/admin/certifications/delete-confirmation-dialog'
@@ -17,12 +18,13 @@ interface CertificationListProps {
 }
 
 export function CertificationList({ initialCertifications }: CertificationListProps) {
+  const router = useRouter()
   const [certifications] = useState(initialCertifications)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedCertification, setSelectedCertification] = useState<CertificationWithCount | null>(null)
 
-  const handleRefresh = () => window.location.reload()
+  const handleRefresh = () => router.refresh()
 
   const handleEdit = (cert: CertificationWithCount) => {
     setSelectedCertification(cert)
